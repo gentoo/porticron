@@ -1,0 +1,55 @@
+#!/bin/bash
+
+SCRIPT_NAME=$(basename $0)
+FQDN=$(hostname --fqdn)
+IP=$(dig +short ${FQDN})
+DATE=$(date -R)
+PORTDIR=$(portageq portdir)
+
+# only sync portage if PORTDIR is mounted read-write
+if touch "${PORTDIR}"/.read_only_check &>/dev/null; then
+	rm -f "${PORTDIR}"/.read_only_check
+	/usr/bin/emerge --sync --quiet &>/dev/null
+fi
+
+PACKAGES=$(/usr/bin/emerge --pretend --changelog --update --deep --newuse --quiet --usepkg world 2>/dev/null)
+
+if [[ -z ${PACKAGES} ]]; then
+	exit 0
+fi
+
+cat <<EOF | sendmail -t
+To: root@${FQDN}
+From: root@${FQDN}
+Subject: Gentoo package updates on ${FQDN}
+Date: ${DATE}
+
+porticron report [${DATE}]
+========================================================================
+
+${SCRIPT_NAME} has detected that some packages need upgrading on:
+
+    ${FQDN}
+    [ ${IP} ]
+
+The following packages are currently pending an upgrade:
+
+$(echo "${PACKAGES}" | sed 's/^\[/    [/')
+
+========================================================================
+
+You can perform the upgrade by issuing the command:
+
+    emerge -NDuk world
+
+as root on ${FQDN}
+
+It is recommended that you pretend the upgrade first to confirm that
+the actions that would be taken are reasonable. The upgrade may be
+pretended by issuing the command:
+
+    emerge -NDuvpk world
+
+--
+${SCRIPT_NAME}
+EOF
