@@ -27,47 +27,56 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# load config
+: ${PORTICRON_CONF:-/etc/porticron.conf}
+
+if [[ -r ${PORTICRON_CONF} ]]; then
+	source ${PORTICRON_CONF}
+fi
+
+
+# detect some common variables
 SCRIPT_NAME=$(basename $0)
 FQDN=$(hostname --fqdn)
 IP=$(dig +short ${FQDN})
 DATE=$(date -R)
 PORTDIR=$(portageq portdir)
 
-# only sync portage if PORTDIR is mounted read-write
-if touch "${PORTDIR}"/.read_only_check &>/dev/null; then
-	rm -f "${PORTDIR}"/.read_only_check
-	/usr/bin/emerge --sync --quiet &>/dev/null
+
+# sync if desired
+${SYNC_CMD:-/usr/bin/emerge --sync} &>/dev/null
+
+
+# build a list of changed ebuilds
+if [[ -n ${DIFF_CMD} ]]; then
+	DIFF=$(${DIFF_CMD} 2>/dev/null)
 fi
 
-PACKAGES=$(/usr/bin/emerge --pretend --changelog --update --deep --newuse --quiet --usepkg world 2>/dev/null)
+if [[ -n ${DIFF} ]]; then
+	DIFF_MSG="${SCRIPT_NAME} has detected the following changes to ${PORTDIR}:
 
-if [[ -z ${PACKAGES} ]]; then
-	exit 0
-fi
+${DIFF}
 
-cat <<EOF | sendmail -t
-To: root@${FQDN}
-From: root@${FQDN}
-Subject: Gentoo package updates on ${FQDN}
-Date: ${DATE}
-
-porticron report [${DATE}]
 ========================================================================
+"
+fi
 
-${SCRIPT_NAME} has detected that some packages need upgrading on:
 
-    ${FQDN}
-    [ ${IP} ]
+# build list of upgrades
+: ${UPGRADE_OPTS:=--deep --update}
+UPGRADE=$(/usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world 2>/dev/null)
 
-The following packages are currently pending an upgrade:
+if [[ -n ${UPGRADE} ]]; then
+	UPGRADE_MSG="
+${SCRIPT_NAME} has detected that some packages need upgrading:
 
-$(echo "${PACKAGES}" | sed 's/^\[/    [/')
+$(echo "${UPGRADE}" | sed 's/^\[/    [/')
 
 ========================================================================
 
 You can perform the upgrade by issuing the command:
 
-    emerge -NDuk world
+    emerge ${UPGRADE_OPTS} world
 
 as root on ${FQDN}
 
@@ -75,8 +84,26 @@ It is recommended that you pretend the upgrade first to confirm that
 the actions that would be taken are reasonable. The upgrade may be
 pretended by issuing the command:
 
-    emerge -NDuvpk world
+    emerge ${UPGRADE_OPTS} --pretend world
 
+"
+fi
+
+
+# send mail
+if [[ -z ${UPGRADE_MSG} && -z ${DIFF_MSG} ]]; then
+	exit 0
+fi
+
+cat <<EOF | sendmail -t
+To: ${RCPT:-root@${FQDN}}
+From: root@${FQDN}
+Subject: Gentoo package updates on ${FQDN} [ ${IP} ]
+Date: ${DATE}
+
+porticron report [${DATE}]
+========================================================================
+${DIFF_MSG}${UPGRADE_MSG}
 --
 ${SCRIPT_NAME}
 EOF
