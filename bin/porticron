@@ -95,7 +95,7 @@ if [[ -z ${UPGRADE_MSG} && -z ${DIFF_MSG} ]]; then
 	exit 0
 fi
 
-cat <<EOF | sendmail -t
+cat <<EOF | ${SENDMAIL:-/usr/sbin/sendmail} -t
 To: ${RCPT:-root@${FQDN}}
 From: root@${FQDN}
 Subject: Gentoo package updates on ${FQDN} [ ${IP} ]
