@@ -23,13 +23,17 @@ porticron is available via portage:
 Configuration
 =============
 
-The configuration for porticron is located at ``/etc/porticron.conf``. You can set the following options:
+The configuration for porticron is located at ``/etc/porticron.conf``. You can
+set the following options:
 
 SYNC_CMD
-  The command porticron should use to synchronize your portage tree. Defaults to ``/usr/bin/emerge --sync``. Set this to ``/bin/true`` if your portage tree is mounted read-only (e.g. via nfs).
+  The command porticron should use to synchronize your portage tree. Defaults
+  to ``/usr/bin/emerge --sync``. Set this to ``/bin/true`` if your portage tree
+  is mounted read-only (e.g. via nfs).
 
 UPGRADE_OPTS
-  Command-line options that should be passed to emerge while scanning for pending upgrades. Defaults to ``--deep --update``.
+  Command-line options that should be passed to emerge while scanning for
+  pending upgrades. Defaults to ``--deep --update``.
 
 RCPT
   Recipient of notification mails. Defaults to ``root@$(hostname -f)``
@@ -40,7 +44,7 @@ SENDMAIL
 Example
 =======
 
-An sample of an upgrade notification looks like this:
+A sample of an upgrade notification looks like this:
 ::
 
   porticron report [Tue, 09 Dec 2008 05:07:06 +0100]
