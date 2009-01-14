@@ -12,7 +12,7 @@ fi
 # detect some common variables
 SCRIPT_NAME=$(basename $0)
 FQDN=$(hostname --fqdn)
-IP=$(dig +short ${FQDN})
+IP=$(dig +short ${FQDN} | tr '\n' ' ')
 DATE=$(date -R)
 PORTDIR=$(portageq portdir)
 
