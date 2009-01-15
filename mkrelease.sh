@@ -8,7 +8,7 @@ VERSION=$(sed 's/^:Version: \(.*\)/\1/;t;d' README)
 mkdir -p ~/public_html/projects/${PROJECT}/dist
 
 ebegin "Creating release tarball"
-git-archive --format=tar --prefix=${PROJECT}-${VERSION}/ HEAD | \
+git archive --format=tar --prefix=${PROJECT}-${VERSION}/ HEAD | \
 bzip2 > ~/public_html/projects/${PROJECT}/dist/${PROJECT}-${VERSION}.tar.bz2
 eend $?
 
