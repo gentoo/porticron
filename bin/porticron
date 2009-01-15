@@ -2,7 +2,7 @@
 # vim: set fileencoding=utf-8 ts=4 sw=4 noexpandtab
 
 # load config
-: ${PORTICRON_CONF:-/etc/porticron.conf}
+: ${PORTICRON_CONF:=/etc/porticron.conf}
 
 if [[ -r ${PORTICRON_CONF} ]]; then
 	source ${PORTICRON_CONF}
