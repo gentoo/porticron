@@ -2,16 +2,23 @@
 
 source /etc/init.d/functions.sh
 
-PROJECT=porticron
-VERSION=$(sed 's/^:Version: \(.*\)/\1/;t;d' README)
+PROJECT=$(sed -n '2{p;q;}' README.rst)
+VERSION=$(sed 's/^:Version: \(.*\)/\1/;t;d' README.rst)
 
-mkdir -p ~/public_html/projects/${PROJECT}/dist
+HTDOCS=~/public_html/projects/${PROJECT}
+DISTTAR=${HTDOCS}/dist/${PROJECT}-${VERSION}.tar.bz2
 
-ebegin "Creating release tarball"
-git archive --format=tar --prefix=${PROJECT}-${VERSION}/ HEAD | \
-bzip2 > ~/public_html/projects/${PROJECT}/dist/${PROJECT}-${VERSION}.tar.bz2
-eend $?
+mkdir -p ${HTDOCS}/dist
 
 ebegin "Generating project page"
-rst2html.py < README > ~/public_html/projects/${PROJECT}/index.html
+rst2html.py < README.rst > ${HTDOCS}/index.html
 eend $?
+
+if [[ -e ${DISTTAR} ]]; then
+	echo "!!! ${DISTTAR} exists."
+else
+	ebegin "Creating release tarball"
+	git archive --format=tar --prefix=${PROJECT}-${VERSION}/ HEAD | \
+	bzip2 > ${DISTTAR}
+	eend $?
+fi
