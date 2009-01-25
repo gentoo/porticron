@@ -3,7 +3,7 @@ porticron
 =========
 
 :Author: `Benedikt Böhm <bb@xnull.de>`_
-:Version: 0.2.3
+:Version: 0.3
 :Web: http://bb.xnull.de/projects/porticron/
 :Source: http://git.xnull.de/gitweb/?p=porticron.git
 :Download: http://bb.xnull.de/projects/porticron/dist/
@@ -30,6 +30,11 @@ SYNC_CMD
   The command porticron should use to synchronize your portage tree. Defaults
   to ``/usr/bin/emerge --sync``. Set this to ``/bin/true`` if your portage tree
   is mounted read-only (e.g. via nfs).
+
+SYNC_OVERLAYS_CMD
+  The command porticron should use to synchronize your overlays. Defaults to
+  ``/bin/true``. Set this to ``/usr/bin/layman --sync-all`` to use layman for
+  overlay synchronization.
 
 UPGRADE_OPTS
   Command-line options that should be passed to emerge while scanning for
