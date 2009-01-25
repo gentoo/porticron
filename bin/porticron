@@ -19,6 +19,7 @@ PORTDIR=$(portageq portdir)
 
 # sync if desired
 ${SYNC_CMD:-/usr/bin/emerge --sync} &>/dev/null
+${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
 
 
 # build a list of changed ebuilds
