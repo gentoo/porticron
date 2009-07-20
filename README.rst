@@ -3,14 +3,15 @@ porticron
 =========
 
 :Author: `Benedikt Böhm <bb@xnull.de>`_
-:Version: 0.3
+:Version: 0.4
 :Web: http://bb.xnull.de/projects/porticron/
 :Source: http://git.xnull.de/gitweb/?p=porticron.git (also on `github <http://github.com/hollow/porticron>`_)
 :Download: http://bb.xnull.de/projects/porticron/dist/
 
 porticron is a simple shell script for portage similar to apticron for debian.
 It is called from cron to sync your portage tree and send any pending upgrade
-via email.
+via email. Additionally it checks for security issues reported by
+``glsa-check``.
 
 Installation
 ============
