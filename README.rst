@@ -3,7 +3,7 @@ porticron
 =========
 
 :Author: `Benedikt Böhm <bb@xnull.de>`_
-:Version: 0.4
+:Version: 0.5
 :Web: http://bb.xnull.de/projects/porticron/
 :Source: http://git.xnull.de/gitweb/?p=porticron.git (also on `github <http://github.com/hollow/porticron>`_)
 :Download: http://bb.xnull.de/projects/porticron/dist/
@@ -20,6 +20,22 @@ porticron is available via portage:
 ::
 
   emerge porticron
+
+Usage
+=====
+
+Since version 0.5 porticron supports various command line arguments to change
+operating modes:
+::
+
+  Usage: porticron [-hvVn] [-c <file>]
+  
+    -h         print this help text
+    -v         enable verbose output
+    -V         print version number
+    -n         do not send upgrade mails
+    -c <file>  use configuration in <file>
+
 
 Configuration
 =============

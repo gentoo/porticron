@@ -1,10 +1,64 @@
 #!/bin/bash
 # vim: set fileencoding=utf-8 ts=4 sw=4 noexpandtab
 
-# load config
-: ${PORTICRON_CONF:=/etc/porticron.conf}
+PORTICRON_VERSION="0.5"
 
-if [[ -r ${PORTICRON_CONF} ]]; then
+version() {
+	echo "porticron ${PORTICRON_VERSION}"
+	echo "Copyright (c) 2008-2009 Benedikt Böhm <bb@xnull.de>"
+	exit 0
+}
+
+usage() {
+	echo "Usage: porticron [-hvn] [-c <file>]"
+	echo
+	echo "  -h         print this help text"
+	echo "  -v         enable verbose output"
+	echo "  -V         print version number"
+	echo "  -n         do not send upgrade mails"
+	echo "  -c <file>  use configuration in <file>"
+	echo
+	exit 0
+}
+
+log() {
+	[[ ${VERBOSE} -eq 1 ]] && echo "$@" >&2
+}
+
+send_mail() {
+	if [[ ${NOMAIL} -eq 1 ]]; then
+		cat
+	else
+		${SENDMAIL:-/usr/sbin/sendmail} -t
+	fi
+}
+
+
+# parse command line
+while getopts "hvVnc:" opt; do
+	case $opt in
+		h) usage;;
+		v) VERBOSE=1;;
+		V) version;;
+		n) NOMAIL=1;;
+		c) PORTICRON_CONF=${OPTARG};;
+		?) exit 1;;
+	esac
+done
+
+
+# defaults
+: ${VERBOSE:=0}
+: ${NOMAIL:=0}
+: ${PORTICRON_CONF:=/etc/porticron.conf}
+log "using PORTICRON_CONF=${PORTICRON_CONF}, NOMAIL=${NOMAIL}, VERBOSE=${VERBOSE}"
+
+
+# load config
+if [[ ! -r ${PORTICRON_CONF} ]]; then
+	echo "could not open configuration file ${PORTICRON_CONF}"
+	exit 1
+else
 	source ${PORTICRON_CONF}
 fi
 
@@ -18,12 +72,49 @@ PORTDIR=$(portageq portdir)
 
 
 # sync if desired
+log "running SYNC_CMD: ${SYNC_CMD:-/usr/bin/emerge --sync}"
 ${SYNC_CMD:-/usr/bin/emerge --sync} &>/dev/null
+log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD:-/bin/true}"
 ${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
+
+
+# GLSA check
+log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --verbose affected"
+GLSA_AFFECTED=$(/usr/bin/glsa-check --test --verbose affected 2>/dev/null)
+log "running GLSA_UPGRADES: /usr/bin/glsa-check --pretend affected"
+GLSA_UPGRADES=$(/usr/bin/glsa-check --pretend affected | grep '^     ')
+
+if [[ -n ${GLSA_AFFECTED} ]]; then
+	GLSA_MSG="
+${SCRIPT_NAME} has detected that this system is affected by the following GLSAs:
+
+$(echo "${GLSA_AFFECTED}" | sed 's/^20/     20/')
+
+========================================================================
+
+The following updates should be performed for these GLSAs:
+
+${GLSA_UPGRADES}
+"
+
+	cat <<EOF | send_mail
+To: ${RCPT:-root@${FQDN}}
+From: root@${FQDN}
+Subject: WARNING: Gentoo security updates on ${FQDN} [ ${IP} ]
+Date: ${DATE}
+
+porticron report [${DATE}]
+========================================================================
+${GLSA_MSG}
+--
+${SCRIPT_NAME}
+EOF
+fi
 
 
 # build a list of changed ebuilds
 if [[ -n ${DIFF_CMD} ]]; then
+	log "running DIFF_CMD: ${DIFF_CMD}"
 	DIFF=$(${DIFF_CMD} 2>/dev/null)
 fi
 
@@ -39,6 +130,7 @@ fi
 
 # build list of upgrades
 : ${UPGRADE_OPTS:=--deep --update}
+log "running UPGRADE_CMD: /usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world"
 UPGRADE=$(/usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world 2>/dev/null)
 
 if [[ -n ${UPGRADE} ]]; then
@@ -67,10 +159,11 @@ fi
 
 # send mail
 if [[ -z ${UPGRADE_MSG} && -z ${DIFF_MSG} ]]; then
+	log "no upgrades found, exiting."
 	exit 0
 fi
 
-cat <<EOF | ${SENDMAIL:-/usr/sbin/sendmail} -t
+cat <<EOF | send_mail
 To: ${RCPT:-root@${FQDN}}
 From: root@${FQDN}
 Subject: Gentoo package updates on ${FQDN} [ ${IP} ]
@@ -79,44 +172,6 @@ Date: ${DATE}
 porticron report [${DATE}]
 ========================================================================
 ${DIFF_MSG}${UPGRADE_MSG}
---
-${SCRIPT_NAME}
-EOF
-
-
-# GLSA check
-GLSA_AFFECTED=$(/usr/bin/glsa-check --test --verbose affected 2>/dev/null)
-GLSA_UPGRADES=$(/usr/bin/glsa-check --pretend affected | grep '^     ')
-
-if [[ -n ${GLSA_AFFECTED} ]]; then
-	GLSA_MSG="
-${SCRIPT_NAME} has detected that this system is affected by the following GLSAs:
-
-$(echo "${GLSA_AFFECTED}" | sed 's/^20/     20/')
-
-========================================================================
-
-The following updates should be performed for these GLSAs:
-
-${GLSA_UPGRADES}
-"
-fi
-
-
-# send mail
-if [[ -z ${GLSA_MSG} ]]; then
-	exit 0
-fi
-
-cat <<EOF | ${SENDMAIL:-/usr/sbin/sendmail} -t
-To: ${RCPT:-root@${FQDN}}
-From: root@${FQDN}
-Subject: WARNING: Gentoo security updates on ${FQDN} [ ${IP} ]
-Date: ${DATE}
-
-porticron report [${DATE}]
-========================================================================
-${GLSA_MSG}
 --
 ${SCRIPT_NAME}
 EOF
