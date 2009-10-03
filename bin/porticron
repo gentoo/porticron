@@ -78,6 +78,10 @@ log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD:-/bin/true}"
 ${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
 
 
+# run emerge once to perform global updates while not cluttering mail output
+/usr/bin/emerge --info &>/dev/null
+
+
 # GLSA check
 log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --verbose affected"
 GLSA_AFFECTED=$(/usr/bin/glsa-check --test --verbose affected 2>/dev/null)
