@@ -83,8 +83,8 @@ ${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
 
 
 # GLSA check
-log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --verbose affected"
-GLSA_AFFECTED=$(/usr/bin/glsa-check --test --verbose affected 2>/dev/null)
+log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --nocolor --verbose affected"
+GLSA_AFFECTED=$(/usr/bin/glsa-check --test --nocolor --verbose affected 2>/dev/null)
 log "running GLSA_UPGRADES: /usr/bin/glsa-check --pretend affected"
 GLSA_UPGRADES=$(/usr/bin/glsa-check --pretend affected | grep '^     ')
 
