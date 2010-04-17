@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: set fileencoding=utf-8 ts=4 sw=4 noexpandtab
 
-PORTICRON_VERSION="0.5.1"
+PORTICRON_VERSION="0.5.2"
 
 version() {
 	echo "porticron ${PORTICRON_VERSION}"
@@ -27,7 +27,11 @@ log() {
 
 send_mail() {
 	if [[ ${NOMAIL} -eq 1 ]]; then
-		cat
+		if [[ ${VERBOSE} -eq 1 ]]; then
+			cat
+		else
+			cat > /dev/null
+		fi
 	else
 		${SENDMAIL:-/usr/sbin/sendmail} -t
 	fi
