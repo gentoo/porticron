@@ -37,6 +37,46 @@ send_mail() {
 	fi
 }
 
+mkhash() {
+	echo "${1}" | md5sum | cut -f1 -d' '
+}
+
+save_msg() {
+	HASH_FILE="${TMP}${1}"
+	log "creating hash file ${HASH_FILE}"
+	mkhash "${2}" > "${HASH_FILE}"
+}
+
+# Test if msg with id $1 and body $2 is equal to previous saved msg
+# Returns: 1 - if msg is equal, 0 - if msg is different, unknown, etc
+check_msg() {
+	if [[ ${CHECK_DUP_MSG} -eq 0 ]]; then
+		return 0
+	fi
+	if [[ ${NOMAIL} -eq 1 ]]; then
+		return 0
+	fi
+
+	HASH_FILE="${TMP}${1}"
+
+	if [ ! -f "${HASH_FILE}" ]; then
+		log "no previous hash file ${HASH_FILE} exists"
+		save_msg "$1" "$2"
+		return 0
+	fi
+
+	OLD_HASH=$(cat "${HASH_FILE}")
+	NEW_HASH=$(mkhash "${2}")
+	if [[ "${OLD_HASH}" == "${NEW_HASH}" ]]; then
+		log "hash matched for hash file ${HASH_FILE}"
+		return 1
+	else
+		save_msg "$1" "$2"
+		log "hash unmatched for hash file ${HASH_FILE}"
+		return 0
+	fi
+}
+
 
 # parse command line
 while getopts "hvVnc:" opt; do
@@ -55,6 +95,8 @@ done
 : ${VERBOSE:=0}
 : ${NOMAIL:=0}
 : ${PORTICRON_CONF:=/etc/porticron.conf}
+: ${TMP:="/var/tmp/porticron."}
+: ${CHECK_DUP_MSG:=1}
 log "using PORTICRON_CONF=${PORTICRON_CONF}, NOMAIL=${NOMAIL}, VERBOSE=${VERBOSE}"
 
 
@@ -93,7 +135,8 @@ log "running GLSA_UPGRADES: /usr/bin/glsa-check --nocolor --pretend affected"
 GLSA_UPGRADES=$(/usr/bin/glsa-check --nocolor --pretend affected | grep '^     ')
 
 if [[ -n ${GLSA_AFFECTED} ]]; then
-	GLSA_MSG="
+	if check_msg GLSA_AFFECTED "${GLSA_AFFECTED}"; then
+		GLSA_MSG="
 ${SCRIPT_NAME} has detected that this system is affected by the following GLSAs:
 
 $(echo "${GLSA_AFFECTED}" | sed 's/^20/     20/')
@@ -104,8 +147,7 @@ The following updates should be performed for these GLSAs:
 
 ${GLSA_UPGRADES}
 "
-
-	cat <<EOF | send_mail
+		cat <<EOF | send_mail
 To: ${RCPT:-root@${FQDN}}
 From: root@${FQDN}
 Subject: WARNING: Gentoo security updates on ${FQDN} [ ${IP} ]
@@ -117,8 +159,8 @@ ${GLSA_MSG}
 --
 ${SCRIPT_NAME}
 EOF
+	fi
 fi
-
 
 # build a list of changed ebuilds
 if [[ -n ${DIFF_CMD} ]]; then
@@ -168,6 +210,19 @@ fi
 # send mail
 if [[ -z ${UPGRADE_MSG} && -z ${DIFF_MSG} ]]; then
 	log "no upgrades found, exiting."
+	exit 0
+fi
+
+# We need to execute both check_msg actually to save hash files
+check_msg UPGRADE_MSG "${UPGRADE_MSG}"
+UPGRADE_MSG_CODE=$?
+# TODO: Output of DIFF_MSG can contain dates and status of currently installed packages.
+# This will trigger e-mail sending even if e.g. eix cache is not changed.
+check_msg DIFF_MSG "${DIFF_MSG}"
+DIFF_MSG_CODE=$?
+
+if [[ ${UPGRADE_MSG_CODE} -eq 1 && ${DIFF_MSG_CODE} -eq 1 ]]; then
+	log "no new upgrades found, exiting."
 	exit 0
 fi
 
