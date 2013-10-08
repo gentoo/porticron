@@ -97,6 +97,8 @@ done
 : ${PORTICRON_CONF:=/etc/porticron.conf}
 : ${TMP:="/var/tmp/porticron."}
 : ${CHECK_DUP_MSG:=1}
+: ${SUBJECT:=Gentoo package updates on {FQDN\} [ {IP\} ]}
+: ${SUBJECT_WARN:=WARNING: Gentoo security updates on {FQDN\} [ {IP\} ]}
 log "using PORTICRON_CONF=${PORTICRON_CONF}, NOMAIL=${NOMAIL}, VERBOSE=${VERBOSE}"
 
 
@@ -112,10 +114,16 @@ fi
 # detect some common variables
 SCRIPT_NAME=$(basename $0)
 FQDN=$(hostname --fqdn)
+HOST=$(hostname -s)
 IP=$(dig +short ${FQDN} | tr '\n' ' ')
 DATE=$(date -R)
 PORTDIR=$(portageq portdir)
 
+# replace variables
+for var in FQDN HOST IP DATE; do
+    SUBJECT=${SUBJECT/\{$var\}/${!var}}
+    SUBJECT_WARN=${SUBJECT_WARN/\{$var\}/${!var}}
+done
 
 # sync if desired
 log "running SYNC_CMD: ${SYNC_CMD:-/usr/bin/emerge --sync}"
@@ -150,7 +158,7 @@ ${GLSA_UPGRADES}
 		cat <<EOF | send_mail
 To: ${RCPT:-root@${FQDN}}
 From: root@${FQDN}
-Subject: WARNING: Gentoo security updates on ${FQDN} [ ${IP} ]
+Subject: ${SUBJECT_WARN}
 Date: ${DATE}
 
 porticron report [${DATE}]
@@ -229,7 +237,7 @@ fi
 cat <<EOF | send_mail
 To: ${RCPT:-root@${FQDN}}
 From: root@${FQDN}
-Subject: Gentoo package updates on ${FQDN} [ ${IP} ]
+Subject: ${SUBJECT}
 Date: ${DATE}
 
 porticron report [${DATE}]
