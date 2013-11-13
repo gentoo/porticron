@@ -3,7 +3,7 @@ porticron
 =========
 
 :Author: `Benedikt Böhm <bb@xnull.de>`_
-:Version: 0.6
+:Version: 0.7
 :Web: http://github.com/hollow/porticron
 :Git: ``git clone https://github.com/hollow/porticron.git``
 :Download: http://github.com/hollow/porticron/downloads
