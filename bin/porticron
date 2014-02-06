@@ -164,7 +164,7 @@ Date: ${DATE}
 porticron report [${DATE}]
 ========================================================================
 ${GLSA_MSG}
---
+-- 
 ${SCRIPT_NAME}
 EOF
 	fi
@@ -243,6 +243,6 @@ Date: ${DATE}
 porticron report [${DATE}]
 ========================================================================
 ${DIFF_MSG}${UPGRADE_MSG}
---
+-- 
 ${SCRIPT_NAME}
 EOF
