@@ -126,15 +126,14 @@ for var in FQDN HOST IP DATE; do
 done
 
 # sync if desired
-log "running SYNC_CMD: ${SYNC_CMD:-/usr/bin/emerge --sync}"
-${SYNC_CMD:-/usr/bin/emerge --sync} &>/dev/null
+log "running SYNC_CMD: ${SYNC_CMD:-/usr/sbin/emaint sync --auto}"
+${SYNC_CMD:-/usr/sbin/emaint sync --auto} &>/dev/null
 log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD:-/bin/true}"
 ${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
 
 
-# run emerge once to perform global updates while not cluttering mail output
-/usr/bin/emerge --info &>/dev/null
-
+# perform package move updates for installed packages
+/usr/sbin/emaint --fix moveinst &>/dev/null
 
 # GLSA check
 log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --nocolor --verbose affected"
