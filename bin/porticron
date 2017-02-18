@@ -120,7 +120,7 @@ DATE=$(date -R)
 PORTDIR=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)
 
 # defaults, second half
-: ${RCPT:=root@${FQDN}}
+: ${RCPT:=root@localhost}
 : ${FROM:=root@${FQDN}}
 : ${SYNC_CMD:=/usr/bin/emerge --sync}
 : ${SYNC_OVERLAYS_CMD:=/bin/true}
