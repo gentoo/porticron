@@ -121,6 +121,7 @@ PORTDIR=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)
 
 # defaults, second half
 : ${RCPT:=root@${FQDN}}
+: ${FROM:=root@${FQDN}}
 : ${SYNC_CMD:=/usr/bin/emerge --sync}
 : ${SYNC_OVERLAYS_CMD:=/bin/true}
 
@@ -162,7 +163,7 @@ ${GLSA_UPGRADES}
 "
 		cat <<EOF | send_mail
 To: ${RCPT}
-From: root@${FQDN}
+From: ${FROM}
 Subject: ${SUBJECT_WARN}
 Date: ${DATE}
 
@@ -241,7 +242,7 @@ fi
 
 cat <<EOF | send_mail
 To: ${RCPT}
-From: root@${FQDN}
+From: ${FROM}
 Subject: ${SUBJECT}
 Date: ${DATE}
 
