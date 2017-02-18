@@ -91,7 +91,7 @@ while getopts "hvVnc:" opt; do
 done
 
 
-# defaults
+# defaults, more below
 : ${VERBOSE:=0}
 : ${NOMAIL:=0}
 : ${PORTICRON_CONF:=/etc/porticron.conf}
@@ -119,6 +119,11 @@ IP=$(dig +short ${FQDN} | tr '\n' ' ')
 DATE=$(date -R)
 PORTDIR=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)
 
+# defaults, second half
+: ${RCPT:=root@${FQDN}}
+: ${SYNC_CMD:=/usr/bin/emerge --sync}
+: ${SYNC_OVERLAYS_CMD:=/bin/true}
+
 # replace variables
 for var in FQDN HOST IP DATE; do
     SUBJECT=${SUBJECT/\{$var\}/${!var}}
@@ -126,10 +131,10 @@ for var in FQDN HOST IP DATE; do
 done
 
 # sync if desired
-log "running SYNC_CMD: ${SYNC_CMD:-/usr/bin/emerge --sync}"
-${SYNC_CMD:-/usr/bin/emerge --sync} &>/dev/null
-log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD:-/bin/true}"
-${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
+log "running SYNC_CMD: ${SYNC_CMD}"
+${SYNC_CMD} &>/dev/null
+log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD}"
+${SYNC_OVERLAYS_CMD} &>/dev/null
 
 
 # run emerge once to perform global updates while not cluttering mail output
@@ -156,7 +161,7 @@ The following updates should be performed for these GLSAs:
 ${GLSA_UPGRADES}
 "
 		cat <<EOF | send_mail
-To: ${RCPT:-root@${FQDN}}
+To: ${RCPT}
 From: root@${FQDN}
 Subject: ${SUBJECT_WARN}
 Date: ${DATE}
@@ -235,7 +240,7 @@ if [[ ${UPGRADE_MSG_CODE} -eq 1 && ${DIFF_MSG_CODE} -eq 1 ]]; then
 fi
 
 cat <<EOF | send_mail
-To: ${RCPT:-root@${FQDN}}
+To: ${RCPT}
 From: root@${FQDN}
 Subject: ${SUBJECT}
 Date: ${DATE}
