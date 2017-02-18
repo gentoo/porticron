@@ -99,6 +99,7 @@ done
 : ${CHECK_DUP_MSG:=1}
 : ${SUBJECT:=Gentoo package updates on {FQDN\} [ {IP\} ]}
 : ${SUBJECT_WARN:=WARNING: Gentoo security updates on {FQDN\} [ {IP\} ]}
+: ${EMERGE:=/usr/bin/emerge}
 log "using PORTICRON_CONF=${PORTICRON_CONF}, NOMAIL=${NOMAIL}, VERBOSE=${VERBOSE}"
 
 
@@ -122,8 +123,9 @@ PORTDIR=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)
 # defaults, second half
 : ${RCPT:=root}
 : ${FROM:=root@${FQDN}}
-: ${SYNC_CMD:=/usr/bin/emerge --sync}
+: ${SYNC_CMD:=${EMERGE} --sync}
 : ${SYNC_OVERLAYS_CMD:=/bin/true}
+: ${GLSA_CHECK:=/usr/bin/glsa-check}
 
 # replace variables
 for var in FQDN HOST IP DATE; do
@@ -139,14 +141,14 @@ ${SYNC_OVERLAYS_CMD} &>/dev/null
 
 
 # run emerge once to perform global updates while not cluttering mail output
-/usr/bin/emerge --info &>/dev/null
+${EMERGE} --info &>/dev/null
 
 
 # GLSA check
-log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --nocolor --verbose affected"
-GLSA_AFFECTED=$(/usr/bin/glsa-check --test --nocolor --verbose affected 2>/dev/null)
-log "running GLSA_UPGRADES: /usr/bin/glsa-check --nocolor --pretend affected"
-GLSA_UPGRADES=$(/usr/bin/glsa-check --nocolor --pretend affected | grep '^     ')
+log "running GLSA_AFFECTED: ${GLSA_CHECK} --test --nocolor --verbose affected"
+GLSA_AFFECTED=$(${GLSA_CHECK} --test --nocolor --verbose affected 2>/dev/null)
+log "running GLSA_UPGRADES: ${GLSA_CHECK} --nocolor --pretend affected"
+GLSA_UPGRADES=$(${GLSA_CHECK} --nocolor --pretend affected | grep '^     ')
 
 if [[ -n ${GLSA_AFFECTED} ]]; then
 	if check_msg GLSA_AFFECTED "${GLSA_AFFECTED}"; then
@@ -194,8 +196,8 @@ fi
 
 # build list of upgrades
 : ${UPGRADE_OPTS:=--deep --update}
-log "running UPGRADE_CMD: /usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world"
-UPGRADE=$(/usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world 2>/dev/null)
+log "running UPGRADE_CMD: ${EMERGE} ${UPGRADE_OPTS} --quiet --pretend world"
+UPGRADE=$(${EMERGE} ${UPGRADE_OPTS} --quiet --pretend world 2>/dev/null)
 
 if [[ -n ${UPGRADE} ]]; then
 	UPGRADE_MSG="
