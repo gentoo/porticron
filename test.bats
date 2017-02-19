@@ -19,6 +19,8 @@ PORTICRON() {
         PORTDIR=/usr/portage \
         GLSA_CHECK=/bin/true \
         SENDMAIL=${SENDMAIL:-/bin/true} \
+        HOST=testbox \
+        FQDN=testbox.example.org \
         bin/porticron \
         -c /dev/null \
         "$@"

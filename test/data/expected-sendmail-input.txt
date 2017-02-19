@@ -1,6 +1,6 @@
 To: root
-From: root@sevendust
-Subject: Gentoo package updates on sevendust [  ]
+From: root@testbox.example.org
+Subject: Gentoo package updates on testbox.example.org [  ]
 Date: Sun, 19 Feb 2017 16:50:56 +0100
 
 porticron report [Sun, 19 Feb 2017 16:50:56 +0100]
@@ -28,7 +28,7 @@ You can perform the upgrade by issuing the command:
 
     emerge --deep --update world
 
-as root on sevendust
+as root on testbox.example.org
 
 It is recommended that you pretend the upgrade first to confirm that
 the actions that would be taken are reasonable. The upgrade may be
