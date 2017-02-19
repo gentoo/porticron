@@ -118,7 +118,7 @@ FQDN=$(hostname --fqdn)
 HOST=$(hostname -s)
 IP=$(dig +short ${FQDN} | tr '\n' ' ')
 : ${DATE:=$(date -R)}
-PORTDIR=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)
+: ${PORTDIR:=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)}
 
 # defaults, second half
 : ${RCPT:=root}
