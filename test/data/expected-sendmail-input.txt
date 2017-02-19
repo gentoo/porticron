@@ -1,0 +1,41 @@
+To: root
+From: root@sevendust
+Subject: Gentoo package updates on sevendust [  ]
+Date: Sun, 19 Feb 2017 16:50:56 +0100
+
+porticron report [Sun, 19 Feb 2017 16:50:56 +0100]
+========================================================================
+
+porticron has detected that some packages need upgrading:
+
+    [ebuild     U ] app-text/libpaper-1.1.24_p5 [1.1.24-r2] ABI_X86="(64) -32 (-x32)" 
+    [ebuild     U ] app-text/qpdf-6.0.0-r2 [6.0.0-r1] USE="static-libs -doc -examples -perl {-test}" 
+    [ebuild  NS   ] sys-kernel/vanilla-sources-4.9.10 [4.6.4, 4.9.9] USE="-build -symlink" 
+    [ebuild     U ] dev-python/sip-4.19.1 [4.19] USE="-debug -doc" PYTHON_TARGETS="python2_7 python3_4 python3_5" 
+    [ebuild     U ] net-misc/stunnel-5.40 [5.39] USE="ssl tcpd -ipv6 -libressl (-selinux) -stunnel3" 
+    [ebuild     U ] net-print/cups-2.2.2-r3 [2.2.2-r2] USE="X acl dbus pam python ssl static-libs threads -debug -java -kerberos -lprng-compat (-selinux) -systemd -usb -xinetd -zeroconf" ABI_X86="32 (64) (-x32)" LINGUAS="-ca -cs -de -es -fr -it -ja -ru" PYTHON_TARGETS="python2_7" 
+    [ebuild     U ] x11-drivers/xf86-video-intel-2.99.917_p20170216 [2.99.917_p20161206] USE="dri sna udev uxa -debug -dri3 -xvmc" 
+    [ebuild     U ] net-print/cups-filters-1.13.4 [1.13.3-r2] USE="dbus foomatic jpeg pdf png postscript static-libs tiff -ldap -perl -zeroconf" 
+    [ebuild     U ] sys-fs/eudev-3.2.1-r1 [3.2.1] USE="hwdb introspection kmod static-libs -rule-generator (-selinux) {-test}" ABI_X86="32 (64) (-x32)" 
+    [ebuild     U ] sys-fs/lvm2-2.02.166-r2 [2.02.166-r1] USE="readline static-libs thin udev -clvm -cman -corosync -device-mapper-only -lvm1 -lvm2create_initrd -openais -sanlock (-selinux) -static -systemd" 
+
+ * IMPORTANT: 7 news items need reading for repository 'gentoo'.
+ * Use eselect news read to view new items.
+
+========================================================================
+
+You can perform the upgrade by issuing the command:
+
+    emerge --deep --update world
+
+as root on sevendust
+
+It is recommended that you pretend the upgrade first to confirm that
+the actions that would be taken are reasonable. The upgrade may be
+pretended by issuing the command:
+
+    emerge --deep --update --pretend world
+
+
+-- 
+porticron

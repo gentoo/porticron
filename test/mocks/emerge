@@ -1,0 +1,14 @@
+#! /bin/bash
+# Copyright (C) 2017 Sebastian Pipping <sebastian@pipping.org>
+# Licensed under the 3-Clause BSD license
+
+set -e
+
+if [[ "$*" == '--sync' ]]; then
+    :
+elif [[ "$*" == '--deep --update --quiet --pretend world' ]]; then
+    cat test/data/emerge-deep-update-pretend-output.txt
+else
+    echo "ERROR: Unsupported invocation: $0 $*" >&2
+    exit 1
+fi
