@@ -1,3 +1,14 @@
 language: bash
-script: ./.travis.sh
-sudo: required
+
+# Install BATS without root permissions
+# so do not need "sudo: required" and support
+# the container environment with faster boot time
+# https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
+install:
+- git clone --depth 1 https://github.com/sstephenson/bats.git
+- ( cd bats && ./install.sh ~/.local )
+
+env:
+- PATH="${PATH}:${HOME}/.local"
+
+script: ./test.bats
