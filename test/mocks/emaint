@@ -1,0 +1,37 @@
+#!/bin/bash
+
+if [[ $1 == sync ]]; then
+	shift
+	if [[ $* == @(-a|--auto|-r gentoo) ]]; then
+		exit 0
+	fi
+	error="Incorrect number of arguments" # close enough
+elif [[ $# == 0 ]]; then
+	error="Incorrect number of arguments"
+else
+	# currently, we don't need to mock any other supported commands
+	error="$1 is not a known target"
+fi
+
+cat <<EOF >&2
+usage: usage: emaint [options] COMMAND
+
+The emaint program provides an interface to system health checks
+and maintenance. See the emaint(1) man page for additional
+information about the following commands:
+
+Commands:
+  all            Perform all supported commands
+  binhost        Scan and generate metadata indexes for binary packages.
+  cleanconfmem   Check and clean the config tracker list for uninstalled packages.
+  cleanresume    Discard emerge --resume merge lists
+  logs           Check and clean old logs in the PORT_LOGDIR.
+  merges         Scan for failed merges and fix them.
+  movebin        Perform package move updates for binary packages
+  moveinst       Perform package move updates for installed and binary packages.
+  sync           Check repos.conf settings and sync repositories.
+  world          Check and fix problems in the world file.
+emaint: error: $error
+EOF
+
+exit 2
