@@ -100,6 +100,7 @@ done
 : ${SUBJECT:=Gentoo package updates on {FQDN\} [ {IP\} ]}
 : ${SUBJECT_WARN:=WARNING: Gentoo security updates on {FQDN\} [ {IP\} ]}
 : ${EMERGE:=/usr/bin/emerge}
+: ${EMAINT:=/usr/sbin/emaint}
 log "using PORTICRON_CONF=${PORTICRON_CONF}, NOMAIL=${NOMAIL}, VERBOSE=${VERBOSE}"
 
 
@@ -123,8 +124,7 @@ IP=$(dig +short ${FQDN} | tr '\n' ' ')
 # defaults, second half
 : ${RCPT:=root}
 : ${FROM:=root@${FQDN}}
-: ${SYNC_CMD:=${EMERGE} --sync}
-: ${SYNC_OVERLAYS_CMD:=/bin/true}
+: ${SYNC_CMD:=${EMAINT} sync -a}
 : ${GLSA_CHECK:=/usr/bin/glsa-check}
 
 # replace variables
@@ -133,16 +133,12 @@ for var in FQDN HOST IP DATE; do
     SUBJECT_WARN=${SUBJECT_WARN/\{$var\}/${!var}}
 done
 
-# sync if desired
+# sync repos
 log "running SYNC_CMD: ${SYNC_CMD}"
 ${SYNC_CMD} &>/dev/null
-log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD}"
-${SYNC_OVERLAYS_CMD} &>/dev/null
 
-
-# run emerge once to perform global updates while not cluttering mail output
-${EMERGE} --info &>/dev/null
-
+# perform package move updates for installed packages
+${EMAINT} --fix moveinst &>/dev/null
 
 # GLSA check
 log "running GLSA_AFFECTED: ${GLSA_CHECK} --test --nocolor --verbose affected"

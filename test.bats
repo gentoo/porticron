@@ -16,6 +16,7 @@ teardown() { _clear_state ; }
 PORTICRON() {
     DATE="$(cat test/data/date-r-output.txt)" \
     EMERGE=test/mocks/emerge \
+        EMAINT=test/mocks/emaint \
         PORTDIR=/usr/portage \
         GLSA_CHECK=/bin/true \
         SENDMAIL=${SENDMAIL:-/bin/true} \

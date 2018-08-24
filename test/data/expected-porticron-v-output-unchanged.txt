@@ -1,6 +1,5 @@
 using PORTICRON_CONF=/dev/null, NOMAIL=0, VERBOSE=1
-running SYNC_CMD: test/mocks/emerge --sync
-running SYNC_OVERLAY_CMD: /bin/true
+running SYNC_CMD: test/mocks/emaint sync -a
 running GLSA_AFFECTED: /bin/true --test --nocolor --verbose affected
 running GLSA_UPGRADES: /bin/true --nocolor --pretend affected
 running UPGRADE_CMD: test/mocks/emerge --deep --update --quiet --pretend world
