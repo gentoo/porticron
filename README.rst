@@ -45,13 +45,8 @@ set the following options:
 
 SYNC_CMD
   The command porticron should use to synchronize your portage tree. Defaults
-  to ``/usr/bin/emerge --sync``. Set this to ``/bin/true`` if your portage tree
-  is mounted read-only (e.g. via nfs).
-
-SYNC_OVERLAYS_CMD
-  The command porticron should use to synchronize your overlays. Defaults to
-  ``/bin/true``. Set this to ``/usr/bin/layman --sync-all`` to use layman for
-  overlay synchronization.
+  to ``/usr/sbin/emaint sync -a``. Set this to ``/bin/true`` if your portage
+  tree is mounted read-only (e.g. via nfs).
 
 UPGRADE_OPTS
   Command-line options that should be passed to emerge while scanning for
