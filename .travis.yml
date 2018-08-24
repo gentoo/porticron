@@ -1,0 +1,11 @@
+language: bash
+
+# Install BATS without root permissions
+# so do not need "sudo: required" and support
+# the container environment, too
+# https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
+install:
+- git clone --depth 1 https://github.com/sstephenson/bats.git
+- ( cd bats && ./install.sh ~/.local )
+
+script: ./test.bats

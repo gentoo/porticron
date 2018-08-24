@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: set fileencoding=utf-8 ts=4 sw=4 noexpandtab
 
-PORTICRON_VERSION="0.7"
+PORTICRON_VERSION="0.7.1"
 
 version() {
 	echo "porticron ${PORTICRON_VERSION}"
@@ -91,7 +91,7 @@ while getopts "hvVnc:" opt; do
 done
 
 
-# defaults
+# defaults, more below
 : ${VERBOSE:=0}
 : ${NOMAIL:=0}
 : ${PORTICRON_CONF:=/etc/porticron.conf}
@@ -99,6 +99,8 @@ done
 : ${CHECK_DUP_MSG:=1}
 : ${SUBJECT:=Gentoo package updates on {FQDN\} [ {IP\} ]}
 : ${SUBJECT_WARN:=WARNING: Gentoo security updates on {FQDN\} [ {IP\} ]}
+: ${EMERGE:=/usr/bin/emerge}
+: ${EMAINT:=/usr/sbin/emaint}
 log "using PORTICRON_CONF=${PORTICRON_CONF}, NOMAIL=${NOMAIL}, VERBOSE=${VERBOSE}"
 
 
@@ -113,11 +115,17 @@ fi
 
 # detect some common variables
 SCRIPT_NAME=$(basename $0)
-FQDN=$(hostname --fqdn)
-HOST=$(hostname -s)
+: ${FQDN:=$(hostname --fqdn)}
+: ${HOST:=$(hostname -s)}
 IP=$(dig +short ${FQDN} | tr '\n' ' ')
-DATE=$(date -R)
-PORTDIR=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)
+: ${DATE:=$(date -R)}
+: ${PORTDIR:=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)}
+
+# defaults, second half
+: ${RCPT:=root}
+: ${FROM:=root@${FQDN}}
+: ${SYNC_CMD:=${EMAINT} sync -a}
+: ${GLSA_CHECK:=/usr/bin/glsa-check}
 
 # replace variables
 for var in FQDN HOST IP DATE; do
@@ -125,21 +133,18 @@ for var in FQDN HOST IP DATE; do
     SUBJECT_WARN=${SUBJECT_WARN/\{$var\}/${!var}}
 done
 
-# sync if desired
-log "running SYNC_CMD: ${SYNC_CMD:-/usr/sbin/emaint sync --auto}"
-${SYNC_CMD:-/usr/sbin/emaint sync --auto} &>/dev/null
-log "running SYNC_OVERLAY_CMD: ${SYNC_OVERLAYS_CMD:-/bin/true}"
-${SYNC_OVERLAYS_CMD:-/bin/true} &>/dev/null
-
+# sync repos
+log "running SYNC_CMD: ${SYNC_CMD}"
+${SYNC_CMD} &>/dev/null
 
 # perform package move updates for installed packages
-/usr/sbin/emaint --fix moveinst &>/dev/null
+${EMAINT} --fix moveinst &>/dev/null
 
 # GLSA check
-log "running GLSA_AFFECTED: /usr/bin/glsa-check --test --nocolor --verbose affected"
-GLSA_AFFECTED=$(/usr/bin/glsa-check --test --nocolor --verbose affected 2>/dev/null)
-log "running GLSA_UPGRADES: /usr/bin/glsa-check --nocolor --pretend affected"
-GLSA_UPGRADES=$(/usr/bin/glsa-check --nocolor --pretend affected | grep '^     ')
+log "running GLSA_AFFECTED: ${GLSA_CHECK} --test --nocolor --verbose affected"
+GLSA_AFFECTED=$(${GLSA_CHECK} --test --nocolor --verbose affected 2>/dev/null)
+log "running GLSA_UPGRADES: ${GLSA_CHECK} --nocolor --pretend affected"
+GLSA_UPGRADES=$(${GLSA_CHECK} --nocolor --pretend affected | grep '^     ')
 
 if [[ -n ${GLSA_AFFECTED} ]]; then
 	if check_msg GLSA_AFFECTED "${GLSA_AFFECTED}"; then
@@ -155,8 +160,8 @@ The following updates should be performed for these GLSAs:
 ${GLSA_UPGRADES}
 "
 		cat <<EOF | send_mail
-To: ${RCPT:-root@${FQDN}}
-From: root@${FQDN}
+To: ${RCPT}
+From: ${FROM}
 Subject: ${SUBJECT_WARN}
 Date: ${DATE}
 
@@ -187,8 +192,8 @@ fi
 
 # build list of upgrades
 : ${UPGRADE_OPTS:=--deep --update}
-log "running UPGRADE_CMD: /usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world"
-UPGRADE=$(/usr/bin/emerge ${UPGRADE_OPTS} --quiet --pretend world 2>/dev/null)
+log "running UPGRADE_CMD: ${EMERGE} ${UPGRADE_OPTS} --quiet --pretend world"
+UPGRADE=$(${EMERGE} ${UPGRADE_OPTS} --quiet --pretend world 2>/dev/null)
 
 if [[ -n ${UPGRADE} ]]; then
 	UPGRADE_MSG="
@@ -234,8 +239,8 @@ if [[ ${UPGRADE_MSG_CODE} -eq 1 && ${DIFF_MSG_CODE} -eq 1 ]]; then
 fi
 
 cat <<EOF | send_mail
-To: ${RCPT:-root@${FQDN}}
-From: root@${FQDN}
+To: ${RCPT}
+From: ${FROM}
 Subject: ${SUBJECT}
 Date: ${DATE}
 
