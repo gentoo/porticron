@@ -116,7 +116,7 @@ fi
 SCRIPT_NAME=$(basename $0)
 : ${FQDN:=$(hostname --fqdn)}
 : ${HOST:=$(hostname -s)}
-IP=$(dig +short ${FQDN} | tr '\n' ' ')
+IP=$(getent hosts ${FQDN} | cut -d ' ' -f 1)
 : ${DATE:=$(date -R)}
 : ${PORTDIR:=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)}
 
