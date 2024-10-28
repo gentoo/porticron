@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: set fileencoding=utf-8 ts=4 sw=4 noexpandtab
 
-PORTICRON_VERSION="0.7.1"
+PORTICRON_VERSION="0.7.2"
 
 version() {
 	echo "porticron ${PORTICRON_VERSION}"
